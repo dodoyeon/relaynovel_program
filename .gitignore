@@ -1,0 +1,19 @@
+__pycache__/
+.idea/
+.vscode/
+skt/
+homepages/
+loss_log/
+weight/
+
+# dataset
+prepre/
+preprocessed/
+preprocess_final.csv
+preprocess.csv
+
+# old 
+old/finetuned_weight/
+old/data*
+old/finetuning*
+old/gen*
