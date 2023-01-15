@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Relay Novel generation Program with AI</title>
+    <style>
+        .box {
+            margin: 20px;
+            padding: 30px;
+            border: 1px solid black;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <p>
+        You can write Fantasy Relay novel with others using Korean GPT-2 model
+    </p>
+    <form action="/" method="post">
+        <p>user 문장: <input type="text" id="input" name="input"></p>
+        <p>
+            다음 문장 inference <input type="submit" value="Relay" onclick="alert('Inference 중 입니다')" />
+        </p>
+    </form>
+    {% if inference_log | length > 0 %}
+    <p>
+        <생성된 소설>
+    </p>
+    <div class="box">
+        {% for speaker, sentence in inference_log %}
+        {#
+        U : 그 외계인은 내가 좋다고 말했다. <br>
+        G : 그 틈을 조직으로 빈번하게 저항 모사미트에 못지않게 무례한 일이다. <br>
+        U : 너를 만나려고 내 별과 모든 것과 자유를 버리고 2만 광년을 왔어.<br>
+        G : 사타바하나솔 양조 내게 일반적인 그외 끝에는 프롤레타리아가 있었다<br>
+        #}
+        {{ speaker }} : {{ sentence }} <br>
+        {% endfor %}
+    </div>
+    {% endif %}
+</body>
+
+</html>
