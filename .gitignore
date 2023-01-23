@@ -12,6 +12,7 @@ preprocessed/
 preprocess_final.csv
 preprocess.csv
 raw/
+*.txt
 
 # old 
 old/finetuned_weight/
