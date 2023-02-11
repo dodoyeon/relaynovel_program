@@ -10,11 +10,17 @@ from tqdm import tqdm
 from old.data_tokenizermrbnn import MyTokenizer
 from old.util import *
 from torch.utils.data import DataLoader
-from transformers import GPT2Config, GPT2LMHeadModel, PreTrainedTokenizerFast
+from transformers import (GPT2Config, 
+                          GPT2LMHeadModel, 
+                          PreTrainedTokenizerFast,
+                          DataCollatorForLanguageModeling,
+                          LineByLineTextDataset,
+                          TrainingArguments, 
+                          Trainer)
 from data_novel import NovelDataSet
 
 
-def main(config):
+def main_generaltrain(config):
     device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
     
     if config['input_path'] is not None:
@@ -100,15 +106,44 @@ def main(config):
             total_count += 1
         
         torch.save({'epoch': epoch, 'model state_dict': model.state_dict()}, weight_dir + prefix + str(epoch) + '.bin')
+    
+def main(config):
+    device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+    
+    tokenizer = PreTrainedTokenizerFast.from_pretrained('skt/kogpt2-base-v2', bos_token='<s>', eos_token='</s>', unk_token='<unk>', pad_token='<pad>', mask_token='<mask>')
+    model = GPT2LMHeadModel.from_pretrained('weight/trainer_msl256_ep3+47/checkpoint-191000')
+    # model.resize_token_embeddings(len(tokenizer))
+    model.to(device)
+    model.train()
 
+    data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False) # dataloader for batch
+    dataset = LineByLineTextDataset(tokenizer=tokenizer, file_path='preprocess_final.txt', block_size=256)
+
+    train_args = TrainingArguments(
+        output_dir = 'weight/trainer_msl256_ep50+50',
+        overwrite_output_dir = True,
+        dataloader_drop_last = True,
+        per_device_train_batch_size = config['batch_size'],
+        learning_rate = config['lr'],
+        num_train_epochs = config['epoch'],
+        save_total_limit=2
+    )
+    trainer = Trainer(
+        model = model,
+        args = train_args,
+        data_collator = data_collator,
+        train_dataset = dataset
+    )
+    trainer.train()
+    trainer.save_model()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--epoch', '-e', default=5, type=int,
+    parser.add_argument('--epoch', '-e', default=47, type=int,
                         dest='epoch', help='training epoch')
-    parser.add_argument('--learning-rate', '-lr', default=1e-5, type=float,
+    parser.add_argument('--learning-rate', '-lr', default=5e-5, type=float,
                         dest='lr', help='training learning rate')
-    parser.add_argument('--batch-size', '-bs', default=8, type=int,
+    parser.add_argument('--batch-size', '-bs', default=4, type=int,
                         dest='batch_size', help='training batch size')
     parser.add_argument('--loss-dir', '-ld', default='loss_log/', type=str,
                         dest='loss_dir', help='Path to save log for training loss')

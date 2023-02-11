@@ -9,10 +9,24 @@ class NovelDataSet(Dataset):
         self.tokenizer = tokenizer
         self.max_length = max_length
         self.load_data()
+        self.split_data()
 
     def load_data(self):
         with open(self.file_path, 'r') as f:
             self.data = list(csv.reader(f))
+
+    def split_data(self):
+        zipped_data = []
+        phrase = []
+        for sent in self.data:
+            sent = self.tokenizer.tokenize(sent[0])
+            if len(phrase) + len(sent) > self.max_length - 2:
+                phrase = ['<s>'] + phrase + ['</s>']
+                zipped_data.append(phrase)
+                phrase = sent
+            else:
+                phrase += sent
+        self.data = zipped_data
 
     def __len__(self):
         # data_list = os.listdir(self.file_path)
@@ -36,10 +50,10 @@ class NovelDataSet(Dataset):
         line = self.data[index]
         
         # transform
-        line = self.tokenizer.tokenize(''.join(line))
-        if len(line) > self.max_length - 2:
-            line = line[:self.max_length-2]
-        line = ['<s>'] + line + ['</s>']
+        # line = self.tokenizer.tokenize(''.join(line))
+        # if len(line) > self.max_length - 2:
+        #     line = line[:self.max_length-2]
+        # line = ['<s>'] + line + ['</s>']
         
         line = line + ['<pad>'] * (self.max_length - len(line))
         item = torch.tensor(self.tokenizer.convert_tokens_to_ids(line))
